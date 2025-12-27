@@ -1,4 +1,6 @@
 import React from 'react';
+import xboxLogo from '../assets/images/xbox-logo.png';
+import playstationLogo from '../assets/images/playstation-logotype.png';
 import './PlatformTabs.css';
 
 function PlatformTabs({ activePlatform, onPlatformChange }) {
@@ -8,14 +10,14 @@ function PlatformTabs({ activePlatform, onPlatformChange }) {
         className={`platform-tab ${activePlatform === 'xbox' ? 'active' : ''}`}
         onClick={() => onPlatformChange('xbox')}
       >
-        <span className="platform-icon">🎮</span>
+        <img src={xboxLogo} alt="Xbox" className="platform-icon" />
         Xbox
       </button>
       <button
         className={`platform-tab ${activePlatform === 'playstation' ? 'active' : ''}`}
         onClick={() => onPlatformChange('playstation')}
       >
-        <span className="platform-icon">🎯</span>
+        <img src={playstationLogo} alt="PlayStation" className="platform-icon" />
         PlayStation
       </button>
     </div>

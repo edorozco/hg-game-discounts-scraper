@@ -17,18 +17,11 @@
   margin-bottom: 12px;
 }
 
-.logo {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 28px;
-  font-weight: 700;
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+.logo-image {
+  width: auto;
+  height: 80px;
+  object-fit: contain;
+  display: block;
 }
 
 .controls-header h1 {
@@ -97,6 +90,17 @@
   background: #229954;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+
+.btn-success {
+  background: #f39c12;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #e67e22;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(243, 156, 18, 0.3);
 }
 
 .btn-clear {

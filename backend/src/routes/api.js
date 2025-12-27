@@ -139,13 +139,25 @@ router.post('/scrape', async (req, res) => {
  */
 router.get('/download/excel', async (req, res) => {
   try {
-    const gamesData = getGamesData();
+    let gamesData = getGamesData();
     
     if (gamesData.length === 0) {
       addLog('Excel download failed: No Xbox data available', LOG_TYPES.WARNING, EVENT_CATEGORIES.SYSTEM, { platform: 'xbox' });
       return res.status(404).json({ 
         error: 'No data available. Please run scraping first.' 
       });
+    }
+
+    // Filter by selected product IDs if provided
+    if (req.query.productIds) {
+      const selectedIds = req.query.productIds.split(',').map(id => id.trim()).filter(id => id);
+      gamesData = gamesData.filter(game => selectedIds.includes(game.productId));
+      
+      if (gamesData.length === 0) {
+        return res.status(404).json({ 
+          error: 'No games found with the selected IDs.' 
+        });
+      }
     }
 
     const excelBuffer = generateExcel(gamesData);
@@ -158,7 +170,8 @@ router.get('/download/excel', async (req, res) => {
     addLog(`Xbox Excel file downloaded successfully: ${filename}`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SYSTEM, { 
       platform: 'xbox', 
       filename,
-      gamesCount: gamesData.length 
+      gamesCount: gamesData.length,
+      selectedOnly: !!req.query.productIds
     });
   } catch (error) {
     addLog(`Error generating Xbox Excel file: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { 
@@ -306,13 +319,25 @@ router.post('/scrape/playstation', async (req, res) => {
  */
 router.get('/download/excel/playstation', async (req, res) => {
   try {
-    const gamesData = getPlaystationGamesData();
+    let gamesData = getPlaystationGamesData();
     
     if (gamesData.length === 0) {
       addLog('Excel download failed: No PlayStation data available', LOG_TYPES.WARNING, EVENT_CATEGORIES.SYSTEM, { platform: 'playstation' });
       return res.status(404).json({ 
         error: 'No PlayStation data available. Please run scraping first.' 
       });
+    }
+
+    // Filter by selected product IDs if provided
+    if (req.query.productIds) {
+      const selectedIds = req.query.productIds.split(',').map(id => id.trim()).filter(id => id);
+      gamesData = gamesData.filter(game => selectedIds.includes(game.productId));
+      
+      if (gamesData.length === 0) {
+        return res.status(404).json({ 
+          error: 'No games found with the selected IDs.' 
+        });
+      }
     }
 
     const excelBuffer = generatePlaystationExcel(gamesData);
@@ -325,7 +350,8 @@ router.get('/download/excel/playstation', async (req, res) => {
     addLog(`PlayStation Excel file downloaded successfully: ${filename}`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SYSTEM, { 
       platform: 'playstation', 
       filename,
-      gamesCount: gamesData.length 
+      gamesCount: gamesData.length,
+      selectedOnly: !!req.query.productIds
     });
   } catch (error) {
     addLog(`Error generating PlayStation Excel file: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { 

@@ -27,9 +27,16 @@ export async function scrapeGames() {
 
 /**
  * Download Excel file
+ * @param {Array|null} selectedIds - Array of product IDs to include, or null for all games
  */
-export async function downloadExcel() {
+export async function downloadExcel(selectedIds = null) {
+  const params = {};
+  if (selectedIds && selectedIds.length > 0) {
+    params.productIds = selectedIds.join(',');
+  }
+  
   const response = await api.get('/download/excel', {
+    params,
     responseType: 'blob',
   });
   
@@ -82,9 +89,16 @@ export async function scrapePlaystationGames() {
 
 /**
  * Download PlayStation Excel file
+ * @param {Array|null} selectedIds - Array of product IDs to include, or null for all games
  */
-export async function downloadPlaystationExcel() {
+export async function downloadPlaystationExcel(selectedIds = null) {
+  const params = {};
+  if (selectedIds && selectedIds.length > 0) {
+    params.productIds = selectedIds.join(',');
+  }
+  
   const response = await api.get('/download/excel/playstation', {
+    params,
     responseType: 'blob',
   });
   

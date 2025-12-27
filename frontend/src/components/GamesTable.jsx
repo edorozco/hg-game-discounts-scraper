@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import './GamesTable.css';
 
 const countryNames = {
@@ -31,7 +31,7 @@ function formatPrice(price, currency) {
   return `${symbol}${price.toLocaleString()}`;
 }
 
-function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, platform = 'xbox' }) {
+function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, platform = 'xbox', selectedGames = [], onSelectionChange }) {
   // Detect platform from first game if not provided
   const detectedPlatform = platform || (games.length > 0 && games[0].platform === 'playstation' ? 'playstation' : 'xbox');
   const isPlaystation = detectedPlatform === 'playstation';
@@ -77,8 +77,35 @@ function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, pl
     return true;
   });
 
-  // Calculate total columns for colspan
-  const totalCols = isPlaystation ? 14 : 17; // US/TR/IN (4 each) + 1 game + 1 ID = 14, or CO/AR/TR/IN (4 each) + 1 game + 1 ID = 17
+  // Calculate total columns for colspan (add 1 for checkbox column)
+  const totalCols = isPlaystation ? 15 : 18; // US/TR/IN (4 each) + 1 game + 1 ID + 1 checkbox = 15, or CO/AR/TR/IN (4 each) + 1 game + 1 ID + 1 checkbox = 18
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const allIds = filteredGames.map(game => game.productId);
+      onSelectionChange?.(allIds);
+    } else {
+      onSelectionChange?.([]);
+    }
+  };
+
+  const handleSelectGame = (productId, checked) => {
+    if (checked) {
+      onSelectionChange?.([...selectedGames, productId]);
+    } else {
+      onSelectionChange?.(selectedGames.filter(id => id !== productId));
+    }
+  };
+
+  const allSelected = filteredGames.length > 0 && filteredGames.every(game => selectedGames.includes(game.productId));
+  const someSelected = filteredGames.some(game => selectedGames.includes(game.productId));
+  const selectAllRef = useRef(null);
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = someSelected && !allSelected;
+    }
+  }, [someSelected, allSelected]);
 
   return (
     <div className="games-table-container">
@@ -86,6 +113,15 @@ function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, pl
         <table className="games-table">
           <thead>
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  ref={selectAllRef}
+                  checked={allSelected}
+                  onChange={handleSelectAll}
+                  title="Seleccionar todos"
+                />
+              </th>
               <th>Juego</th>
               <th>ID</th>
               {countries.map((country) => {
@@ -100,6 +136,7 @@ function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, pl
               })}
             </tr>
             <tr className="sub-header">
+              <th></th>
               <th></th>
               <th></th>
               {countries.map((country) => {
@@ -129,8 +166,17 @@ function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, pl
                 </td>
               </tr>
             ) : (
-              filteredGames.map((game) => (
-                <tr key={game.productId}>
+              filteredGames.map((game) => {
+                const isSelected = selectedGames.includes(game.productId);
+                return (
+                <tr key={game.productId} className={isSelected ? 'selected' : ''}>
+                  <td className="checkbox-cell">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => handleSelectGame(game.productId, e.target.checked)}
+                    />
+                  </td>
                   <td className="game-title">{game.title}</td>
                   <td className="game-id">{game.productId}</td>
                   {countries.map((country) => {
@@ -162,13 +208,17 @@ function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, pl
                     );
                   })}
                 </tr>
-              ))
+              );
+              })
             )}
           </tbody>
         </table>
       </div>
       <div className="table-footer">
-        Mostrando {filteredGames.length} de {games.length} juegos
+        <span>Mostrando {filteredGames.length} de {games.length} juegos</span>
+        {selectedGames.length > 0 && (
+          <span className="selection-info">{selectedGames.length} juego(s) seleccionado(s)</span>
+        )}
       </div>
     </div>
   );

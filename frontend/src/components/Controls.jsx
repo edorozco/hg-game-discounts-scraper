@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import logoImage from '../assets/images/hardcoregames-logo.webp';
 import './Controls.css';
 
-function Controls({ onScrape, onDownload, isScraping, lastScrapeTime, gamesCount, onFiltersChange, platform, scrapingProgress }) {
+function Controls({ onScrape, onDownload, isScraping, lastScrapeTime, gamesCount, onFiltersChange, platform, scrapingProgress, selectedCount = 0 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -41,7 +42,7 @@ function Controls({ onScrape, onDownload, isScraping, lastScrapeTime, gamesCount
     <div className="controls-container">
       <div className="controls-header">
         <div className="logo-container">
-          <div className="logo">HG</div>
+          <img src={logoImage} alt="Hardcore Games Logo" className="logo-image" />
           <h1>HG Reporter - {platform === 'playstation' ? 'PlayStation' : 'Xbox'} Games Discounts</h1>
         </div>
         <div className="status-info">
@@ -78,11 +79,22 @@ function Controls({ onScrape, onDownload, isScraping, lastScrapeTime, gamesCount
         </button>
         <button
           className="btn btn-secondary"
-          onClick={onDownload}
+          onClick={() => onDownload(false)}
           disabled={gamesCount === 0 || isScraping}
+          title="Descargar todos los juegos"
         >
-          Descargar Excel
+          Descargar Excel (Todos)
         </button>
+        {selectedCount > 0 && (
+          <button
+            className="btn btn-success"
+            onClick={() => onDownload(true)}
+            disabled={isScraping}
+            title={`Descargar ${selectedCount} juego(s) seleccionado(s)`}
+          >
+            Descargar Excel ({selectedCount} seleccionados)
+          </button>
+        )}
       </div>
 
       <div className="filters-container">

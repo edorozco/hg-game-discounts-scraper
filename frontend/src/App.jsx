@@ -28,6 +28,7 @@ function App() {
     minPrice: '',
     maxPrice: ''
   });
+  const [selectedGames, setSelectedGames] = useState([]);
 
   // Load games on mount and when platform changes
   useEffect(() => {
@@ -92,12 +93,14 @@ function App() {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (selectedOnly = false) => {
     try {
+      const idsToDownload = selectedOnly && selectedGames.length > 0 ? selectedGames : null;
+      
       if (platform === 'playstation') {
-        await downloadPlaystationExcel();
+        await downloadPlaystationExcel(idsToDownload);
       } else {
-        await downloadExcel();
+        await downloadExcel(idsToDownload);
       }
     } catch (error) {
       console.error('Error downloading Excel:', error);
@@ -109,6 +112,7 @@ function App() {
     setPlatform(newPlatform);
     setGames([]);
     setLastScrapeTime(null);
+    setSelectedGames([]); // Clear selection when changing platform
   };
 
   const handleFiltersChange = (newFilters) => {
@@ -148,6 +152,7 @@ function App() {
           onFiltersChange={handleFiltersChange}
           platform={platform}
           scrapingProgress={scrapingProgress}
+          selectedCount={selectedGames.length}
         />
         
         {loading ? (
@@ -163,6 +168,8 @@ function App() {
             minPrice={filters.minPrice}
             maxPrice={filters.maxPrice}
             platform={platform}
+            selectedGames={selectedGames}
+            onSelectionChange={setSelectedGames}
           />
         )}
       </div>
