@@ -1,0 +1,181 @@
+.games-table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.games-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.games-table thead {
+  position: sticky;
+  top: 0;
+  background: #2c3e50;
+  color: white;
+  z-index: 10;
+}
+
+.games-table th {
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+  border: 1px solid #34495e;
+}
+
+.games-table .sub-header th {
+  background: #34495e;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Country column colors */
+.country-header {
+  text-align: center !important;
+}
+
+.country-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.country-header.country-CO {
+  background: #FFD700 !important; /* Gold/Yellow for Colombia */
+}
+
+.country-header.country-AR {
+  background: #75AADB !important; /* Light Blue for Argentina */
+}
+
+.country-header.country-TR {
+  background: #E30A17 !important; /* Red for Turkey */
+}
+
+.country-header.country-IN {
+  background: #FF9933 !important; /* Orange for India */
+}
+
+.country-header.country-US {
+  background: #3C3B6E !important; /* Blue for United States */
+}
+
+.country-CO {
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+.country-AR {
+  background-color: rgba(117, 170, 219, 0.1);
+}
+
+.country-TR {
+  background-color: rgba(227, 10, 23, 0.1);
+}
+
+.country-IN {
+  background-color: rgba(255, 153, 51, 0.1);
+}
+
+.country-US {
+  background-color: rgba(60, 59, 110, 0.1);
+}
+
+.games-table tbody tr:hover .country-CO {
+  background-color: rgba(255, 215, 0, 0.2);
+}
+
+.games-table tbody tr:hover .country-AR {
+  background-color: rgba(117, 170, 219, 0.2);
+}
+
+.games-table tbody tr:hover .country-TR {
+  background-color: rgba(227, 10, 23, 0.2);
+}
+
+.games-table tbody tr:hover .country-IN {
+  background-color: rgba(255, 153, 51, 0.2);
+}
+
+.games-table tbody tr:hover .country-US {
+  background-color: rgba(60, 59, 110, 0.2);
+}
+
+.games-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.games-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.games-table td {
+  padding: 10px 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.game-title {
+  font-weight: 600;
+  color: #2c3e50;
+  max-width: 300px;
+  min-width: 200px;
+}
+
+.game-id {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #7f8c8d;
+  text-align: center;
+  min-width: 120px;
+  max-width: 150px;
+}
+
+.price {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  color: #27ae60;
+}
+
+.price.discount {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.price.conversion {
+  color: #3498db;
+  font-weight: 600;
+}
+
+.currency {
+  text-align: center;
+  font-size: 12px;
+  color: #7f8c8d;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #95a5a6;
+  font-style: italic;
+}
+
+.table-footer {
+  padding: 12px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
