@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Controls from './components/Controls';
 import GamesTable from './components/GamesTable';
 import PlatformTabs from './components/PlatformTabs';
+import NotificationCenter from './components/NotificationCenter';
 import { 
   getGames, 
   scrapeGames, 
@@ -130,6 +131,9 @@ function App() {
 
   return (
     <div className="app">
+      <div className="app-header">
+        <NotificationCenter />
+      </div>
       <div className="app-container">
         <PlatformTabs 
           activePlatform={platform}

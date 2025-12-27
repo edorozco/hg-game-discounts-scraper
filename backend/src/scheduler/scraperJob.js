@@ -9,6 +9,8 @@ import {
 } from '../services/dataAggregator.js';
 import { addCurrencyConversions, addPlaystationCurrencyConversions } from '../services/currencyService.js';
 import { saveXboxCSV, savePlaystationCSV } from '../services/csvGenerator.js';
+import { loadXboxGamesFromCSV, loadPlaystationGamesFromCSV } from '../services/csvLoader.js';
+import { addLog, LOG_TYPES, EVENT_CATEGORIES } from '../services/logger.js';
 
 // In-memory storage (shared with API routes)
 let gamesData = [];
@@ -29,7 +31,7 @@ let playstationScrapingProgress = null;
  */
 async function performScraping() {
   if (getIsScraping()) {
-    console.log('Scheduled scraping skipped: already in progress');
+    addLog('Scheduled Xbox scraping skipped: already in progress', LOG_TYPES.WARNING, EVENT_CATEGORIES.SCRAPING);
     return;
   }
 
@@ -37,7 +39,7 @@ async function performScraping() {
   const startTime = Date.now();
 
   try {
-    console.log('Starting scheduled scrape...');
+    addLog('Starting scheduled Xbox scraping...', LOG_TYPES.INFO, EVENT_CATEGORIES.SCRAPING, { platform: 'xbox', trigger: 'scheduled' });
     
     // Scrape all countries
     const countryData = await scrapeAllCountries();
@@ -57,16 +59,25 @@ async function performScraping() {
     // Save to CSV file
     try {
       const csvPath = await saveXboxCSV(formattedGames);
-      console.log(`Xbox CSV saved to: ${csvPath}`);
+      addLog(`Xbox CSV saved successfully`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SCRAPING, { platform: 'xbox', path: csvPath });
     } catch (error) {
-      console.error('Error saving Xbox CSV:', error);
+      addLog(`Error saving Xbox CSV: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { platform: 'xbox', error: error.message });
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     const finalGamesData = getGamesData();
-    console.log(`Scheduled scraping completed in ${duration}s. Found ${finalGamesData.length} games.`);
+    addLog(`Xbox scraping completed successfully. Found ${finalGamesData.length} games in ${duration}s`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SCRAPING, { 
+      platform: 'xbox', 
+      gamesCount: finalGamesData.length, 
+      duration: `${duration}s`,
+      trigger: 'scheduled'
+    });
   } catch (error) {
-    console.error('Error during scheduled scraping:', error);
+    addLog(`Error during scheduled Xbox scraping: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { 
+      platform: 'xbox', 
+      error: error.message,
+      trigger: 'scheduled'
+    });
   } finally {
     setIsScraping(false);
     setScrapingProgress(null);
@@ -78,7 +89,7 @@ async function performScraping() {
  */
 async function performPlaystationScraping() {
   if (getIsPlaystationScraping()) {
-    console.log('Scheduled PlayStation scraping skipped: already in progress');
+    addLog('Scheduled PlayStation scraping skipped: already in progress', LOG_TYPES.WARNING, EVENT_CATEGORIES.SCRAPING);
     return;
   }
 
@@ -86,7 +97,7 @@ async function performPlaystationScraping() {
   const startTime = Date.now();
 
   try {
-    console.log('Starting scheduled PlayStation scrape...');
+    addLog('Starting scheduled PlayStation scraping...', LOG_TYPES.INFO, EVENT_CATEGORIES.SCRAPING, { platform: 'playstation', trigger: 'scheduled' });
     
     // Scrape all countries
     const countryData = await scrapeAllPlaystationCountries();
@@ -106,19 +117,55 @@ async function performPlaystationScraping() {
     // Save to CSV file
     try {
       const csvPath = await savePlaystationCSV(formattedGames);
-      console.log(`PlayStation CSV saved to: ${csvPath}`);
+      addLog(`PlayStation CSV saved successfully`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SCRAPING, { platform: 'playstation', path: csvPath });
     } catch (error) {
-      console.error('Error saving PlayStation CSV:', error);
+      addLog(`Error saving PlayStation CSV: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { platform: 'playstation', error: error.message });
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     const finalGamesData = getPlaystationGamesData();
-    console.log(`Scheduled PlayStation scraping completed in ${duration}s. Found ${finalGamesData.length} games.`);
+    addLog(`PlayStation scraping completed successfully. Found ${finalGamesData.length} games in ${duration}s`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SCRAPING, { 
+      platform: 'playstation', 
+      gamesCount: finalGamesData.length, 
+      duration: `${duration}s`,
+      trigger: 'scheduled'
+    });
   } catch (error) {
-    console.error('Error during scheduled PlayStation scraping:', error);
+    addLog(`Error during scheduled PlayStation scraping: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { 
+      platform: 'playstation', 
+      error: error.message,
+      trigger: 'scheduled'
+    });
   } finally {
     setIsPlaystationScraping(false);
     setPlaystationScrapingProgress(null);
+  }
+}
+
+/**
+ * Loads data from CSV files if they exist
+ */
+export function loadDataFromCSV() {
+  // Load Xbox data
+  const xboxData = loadXboxGamesFromCSV();
+  if (xboxData && xboxData.games.length > 0) {
+    setGamesData(xboxData.games);
+    setLastScrapeTime(xboxData.lastScrapeTime);
+    addLog(`Xbox data loaded from CSV: ${xboxData.games.length} games`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SYSTEM, { 
+      platform: 'xbox', 
+      gamesCount: xboxData.games.length 
+    });
+  }
+
+  // Load PlayStation data
+  const playstationData = loadPlaystationGamesFromCSV();
+  if (playstationData && playstationData.games.length > 0) {
+    setPlaystationGamesData(playstationData.games);
+    setPlaystationLastScrapeTime(playstationData.lastScrapeTime);
+    addLog(`PlayStation data loaded from CSV: ${playstationData.games.length} games`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SYSTEM, { 
+      platform: 'playstation', 
+      gamesCount: playstationData.games.length 
+    });
   }
 }
 
@@ -128,6 +175,9 @@ async function performPlaystationScraping() {
  * Xbox and PlayStation alternate (Xbox at :00, PlayStation at :30)
  */
 export function startScheduler() {
+  // Load existing data from CSV files
+  loadDataFromCSV();
+
   // Schedule Xbox: every 6 hours at minute 0
   cron.schedule('0 */6 * * *', () => {
     performScraping();
@@ -138,8 +188,8 @@ export function startScheduler() {
     performPlaystationScraping();
   });
 
-  console.log('Scheduler started: Xbox scraping will run every 6 hours at :00');
-  console.log('Scheduler started: PlayStation scraping will run every 6 hours at :30');
+  addLog('Scheduler started: Xbox scraping scheduled every 6 hours at :00', LOG_TYPES.INFO, EVENT_CATEGORIES.SYSTEM);
+  addLog('Scheduler started: PlayStation scraping scheduled every 6 hours at :30', LOG_TYPES.INFO, EVENT_CATEGORIES.SYSTEM);
   
   // Optional: run immediately on startup (uncomment if desired)
   // performScraping();

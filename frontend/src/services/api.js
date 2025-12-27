@@ -103,3 +103,23 @@ export async function downloadPlaystationExcel() {
   window.URL.revokeObjectURL(url);
 }
 
+/**
+ * Get application logs/notifications
+ */
+export async function getLogs(limit = 50, type = null, category = null) {
+  const params = new URLSearchParams({ limit: limit.toString() });
+  if (type) params.append('type', type);
+  if (category) params.append('category', category);
+  
+  const response = await api.get(`/logs?${params.toString()}`);
+  return response.data;
+}
+
+/**
+ * Clear all logs
+ */
+export async function clearLogs() {
+  const response = await api.delete('/logs');
+  return response.data;
+}
+

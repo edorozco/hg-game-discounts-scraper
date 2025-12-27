@@ -10,6 +10,7 @@ import {
 import { addCurrencyConversions, addPlaystationCurrencyConversions } from '../services/currencyService.js';
 import { generateExcel, generatePlaystationExcel } from '../services/excelGenerator.js';
 import { saveXboxCSV, savePlaystationCSV } from '../services/csvGenerator.js';
+import { addLog, getLogs, clearLogs, LOG_TYPES, EVENT_CATEGORIES } from '../services/logger.js';
 import {
   getGamesData,
   setGamesData,
@@ -75,7 +76,7 @@ router.post('/scrape', async (req, res) => {
   const startTime = Date.now();
 
   try {
-    console.log('Starting manual scrape...');
+    addLog('Starting manual Xbox scraping...', LOG_TYPES.INFO, EVENT_CATEGORIES.SCRAPING, { platform: 'xbox', trigger: 'manual' });
     
     // Scrape all countries with progress tracking
     const countryData = await scrapeAllCountries((progress) => {
@@ -97,13 +98,18 @@ router.post('/scrape', async (req, res) => {
     // Save to CSV file
     try {
       const csvPath = await saveXboxCSV(formattedGames);
-      console.log(`Xbox CSV saved to: ${csvPath}`);
+      addLog(`Xbox CSV saved successfully`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SCRAPING, { platform: 'xbox', path: csvPath });
     } catch (error) {
-      console.error('Error saving Xbox CSV:', error);
+      addLog(`Error saving Xbox CSV: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { platform: 'xbox', error: error.message });
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`Scraping completed in ${duration}s`);
+    addLog(`Xbox scraping completed successfully. Found ${formattedGames.length} games in ${duration}s`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SCRAPING, { 
+      platform: 'xbox', 
+      gamesCount: formattedGames.length, 
+      duration: `${duration}s`,
+      trigger: 'manual'
+    });
 
     res.json({
       success: true,
@@ -113,7 +119,11 @@ router.post('/scrape', async (req, res) => {
       duration: `${duration}s`
     });
   } catch (error) {
-    console.error('Error during scraping:', error);
+    addLog(`Error during manual Xbox scraping: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { 
+      platform: 'xbox', 
+      error: error.message,
+      trigger: 'manual'
+    });
     res.status(500).json({ 
       error: 'Failed to scrape data',
       message: error.message 
@@ -132,6 +142,7 @@ router.get('/download/excel', async (req, res) => {
     const gamesData = getGamesData();
     
     if (gamesData.length === 0) {
+      addLog('Excel download failed: No Xbox data available', LOG_TYPES.WARNING, EVENT_CATEGORIES.SYSTEM, { platform: 'xbox' });
       return res.status(404).json({ 
         error: 'No data available. Please run scraping first.' 
       });
@@ -143,8 +154,17 @@ router.get('/download/excel', async (req, res) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(excelBuffer);
+    
+    addLog(`Xbox Excel file downloaded successfully: ${filename}`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SYSTEM, { 
+      platform: 'xbox', 
+      filename,
+      gamesCount: gamesData.length 
+    });
   } catch (error) {
-    console.error('Error generating Excel:', error);
+    addLog(`Error generating Xbox Excel file: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { 
+      platform: 'xbox', 
+      error: error.message 
+    });
     res.status(500).json({ error: 'Failed to generate Excel file' });
   }
 });
@@ -223,7 +243,7 @@ router.post('/scrape/playstation', async (req, res) => {
   const startTime = Date.now();
 
   try {
-    console.log('Starting manual PlayStation scrape...');
+    addLog('Starting manual PlayStation scraping...', LOG_TYPES.INFO, EVENT_CATEGORIES.SCRAPING, { platform: 'playstation', trigger: 'manual' });
     
     // Scrape all countries with progress tracking
     const countryData = await scrapeAllPlaystationCountries((progress) => {
@@ -245,13 +265,18 @@ router.post('/scrape/playstation', async (req, res) => {
     // Save to CSV file
     try {
       const csvPath = await savePlaystationCSV(formattedGames);
-      console.log(`PlayStation CSV saved to: ${csvPath}`);
+      addLog(`PlayStation CSV saved successfully`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SCRAPING, { platform: 'playstation', path: csvPath });
     } catch (error) {
-      console.error('Error saving PlayStation CSV:', error);
+      addLog(`Error saving PlayStation CSV: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { platform: 'playstation', error: error.message });
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`PlayStation scraping completed in ${duration}s`);
+    addLog(`PlayStation scraping completed successfully. Found ${formattedGames.length} games in ${duration}s`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SCRAPING, { 
+      platform: 'playstation', 
+      gamesCount: formattedGames.length, 
+      duration: `${duration}s`,
+      trigger: 'manual'
+    });
 
     res.json({
       success: true,
@@ -261,7 +286,11 @@ router.post('/scrape/playstation', async (req, res) => {
       duration: `${duration}s`
     });
   } catch (error) {
-    console.error('Error during PlayStation scraping:', error);
+    addLog(`Error during manual PlayStation scraping: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { 
+      platform: 'playstation', 
+      error: error.message,
+      trigger: 'manual'
+    });
     res.status(500).json({ 
       error: 'Failed to scrape PlayStation data',
       message: error.message 
@@ -280,6 +309,7 @@ router.get('/download/excel/playstation', async (req, res) => {
     const gamesData = getPlaystationGamesData();
     
     if (gamesData.length === 0) {
+      addLog('Excel download failed: No PlayStation data available', LOG_TYPES.WARNING, EVENT_CATEGORIES.SYSTEM, { platform: 'playstation' });
       return res.status(404).json({ 
         error: 'No PlayStation data available. Please run scraping first.' 
       });
@@ -291,9 +321,62 @@ router.get('/download/excel/playstation', async (req, res) => {
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(excelBuffer);
+    
+    addLog(`PlayStation Excel file downloaded successfully: ${filename}`, LOG_TYPES.SUCCESS, EVENT_CATEGORIES.SYSTEM, { 
+      platform: 'playstation', 
+      filename,
+      gamesCount: gamesData.length 
+    });
   } catch (error) {
-    console.error('Error generating PlayStation Excel:', error);
+    addLog(`Error generating PlayStation Excel file: ${error.message}`, LOG_TYPES.ERROR, EVENT_CATEGORIES.ERROR, { 
+      platform: 'playstation', 
+      error: error.message 
+    });
     res.status(500).json({ error: 'Failed to generate PlayStation Excel file' });
+  }
+});
+
+/**
+ * GET /api/logs
+ * Returns application logs/notifications
+ */
+router.get('/logs', (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+    const type = req.query.type;
+    const category = req.query.category;
+
+    let logs = getLogs(limit);
+
+    if (type) {
+      logs = logs.filter(log => log.type === type);
+    }
+
+    if (category) {
+      logs = logs.filter(log => log.category === category);
+    }
+
+    res.json({
+      logs,
+      count: logs.length
+    });
+  } catch (error) {
+    console.error('Error getting logs:', error);
+    res.status(500).json({ error: 'Failed to get logs' });
+  }
+});
+
+/**
+ * DELETE /api/logs
+ * Clears all logs
+ */
+router.delete('/logs', (req, res) => {
+  try {
+    clearLogs();
+    res.json({ success: true, message: 'Logs cleared successfully' });
+  } catch (error) {
+    console.error('Error clearing logs:', error);
+    res.status(500).json({ error: 'Failed to clear logs' });
   }
 });
 
