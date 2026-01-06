@@ -31,13 +31,22 @@ function formatPrice(price, currency) {
   return `${symbol}${price.toLocaleString()}`;
 }
 
-function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, platform = 'xbox', selectedGames = [], onSelectionChange }) {
+function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, selectedCurrency, platform = 'xbox', selectedGames = [], onSelectionChange }) {
   // Detect platform from first game if not provided
   const detectedPlatform = platform || (games.length > 0 && games[0].platform === 'playstation' ? 'playstation' : 'xbox');
   const isPlaystation = detectedPlatform === 'playstation';
   
   // Define countries based on platform
   const countries = isPlaystation ? ['US', 'TR', 'IN'] : ['CO', 'AR', 'TR', 'IN'];
+
+  // Map currency to country code
+  const currencyToCountry = {
+    'COP': 'CO',
+    'ARS': 'AR',
+    'TRY': 'TR',
+    'INR': 'IN',
+    'USD': 'US'
+  };
 
   // Filter games based on search and filters
   const filteredGames = games.filter(game => {
@@ -51,13 +60,23 @@ function GamesTable({ games, searchTerm, selectedCountry, minPrice, maxPrice, pl
       return false;
     }
 
-    // Price range filter
-    if (minPrice !== '' || maxPrice !== '') {
+    // Price range filter with currency
+    if (minPrice !== '' || maxPrice !== '' || selectedCurrency) {
       let hasPriceInRange = false;
 
-      for (const country of countries) {
+      // If currency is selected, only check that currency
+      const countriesToCheck = selectedCurrency && currencyToCountry[selectedCurrency]
+        ? [currencyToCountry[selectedCurrency]]
+        : countries;
+
+      for (const country of countriesToCheck) {
         const countryData = game[country];
         if (countryData && countryData.listPrice) {
+          // Check if currency matches (if currency filter is active)
+          if (selectedCurrency && countryData.currency !== selectedCurrency) {
+            continue;
+          }
+
           const price = countryData.listPrice;
           const min = minPrice === '' ? -Infinity : parseFloat(minPrice);
           const max = maxPrice === '' ? Infinity : parseFloat(maxPrice);

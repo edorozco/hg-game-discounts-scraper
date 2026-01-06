@@ -1,14 +1,14 @@
 {
   "name": "hg-reporter-backend",
   "version": "1.0.0",
-  "description": "Backend API for Xbox game discount scraper",
+  "description": "Backend API for Xbox and PlayStation game discount scraper",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js"
   },
-  "keywords": ["xbox", "scraper", "discounts"],
+  "keywords": ["xbox", "playstation", "scraper", "discounts"],
   "author": "",
   "license": "ISC",
   "dependencies": {

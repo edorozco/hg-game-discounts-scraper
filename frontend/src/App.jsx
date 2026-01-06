@@ -26,7 +26,8 @@ function App() {
     searchTerm: '',
     selectedCountry: '',
     minPrice: '',
-    maxPrice: ''
+    maxPrice: '',
+    selectedCurrency: ''
   });
   const [selectedGames, setSelectedGames] = useState([]);
 
@@ -113,6 +114,13 @@ function App() {
     setGames([]);
     setLastScrapeTime(null);
     setSelectedGames([]); // Clear selection when changing platform
+    setFilters({ // Clear filters when changing platform
+      searchTerm: '',
+      selectedCountry: '',
+      minPrice: '',
+      maxPrice: '',
+      selectedCurrency: ''
+    });
   };
 
   const handleFiltersChange = (newFilters) => {
@@ -167,6 +175,7 @@ function App() {
             selectedCountry={filters.selectedCountry}
             minPrice={filters.minPrice}
             maxPrice={filters.maxPrice}
+            selectedCurrency={filters.selectedCurrency}
             platform={platform}
             selectedGames={selectedGames}
             onSelectionChange={setSelectedGames}

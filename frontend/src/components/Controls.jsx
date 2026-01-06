@@ -6,36 +6,55 @@ function Controls({ onScrape, onDownload, isScraping, lastScrapeTime, gamesCount
   const [searchTerm, setSearchTerm] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [selectedCurrency, setSelectedCurrency] = useState('');
 
-  const updateFilters = (updates) => {
-    if (updates.searchTerm !== undefined) setSearchTerm(updates.searchTerm);
-    if (updates.minPrice !== undefined) setMinPrice(updates.minPrice);
-    if (updates.maxPrice !== undefined) setMaxPrice(updates.maxPrice);
-    
+  // Define available currencies based on platform
+  const availableCurrencies = platform === 'playstation' 
+    ? [
+        { value: 'USD', label: 'USD (Estados Unidos)' },
+        { value: 'TRY', label: 'TRY (Turquía)' },
+        { value: 'INR', label: 'INR (India)' }
+      ]
+    : [
+        { value: 'COP', label: 'COP (Colombia)' },
+        { value: 'ARS', label: 'ARS (Argentina)' },
+        { value: 'TRY', label: 'TRY (Turquía)' },
+        { value: 'INR', label: 'INR (India)' }
+      ];
+
+  const handleSearch = () => {
     if (onFiltersChange) {
       onFiltersChange({
-        searchTerm: updates.searchTerm !== undefined ? updates.searchTerm : searchTerm,
+        searchTerm: searchTerm,
         selectedCountry: '',
-        minPrice: updates.minPrice !== undefined ? updates.minPrice : minPrice,
-        maxPrice: updates.maxPrice !== undefined ? updates.maxPrice : maxPrice,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        selectedCurrency: selectedCurrency
       });
     }
   };
 
-  const handleSearchChange = (e) => {
-    updateFilters({ searchTerm: e.target.value });
-  };
-
-  const handleMinPriceChange = (e) => {
-    updateFilters({ minPrice: e.target.value });
-  };
-
-  const handleMaxPriceChange = (e) => {
-    updateFilters({ maxPrice: e.target.value });
-  };
-
   const clearFilters = () => {
-    updateFilters({ searchTerm: '', minPrice: '', maxPrice: '' });
+    setSearchTerm('');
+    setMinPrice('');
+    setMaxPrice('');
+    setSelectedCurrency('');
+    if (onFiltersChange) {
+      onFiltersChange({
+        searchTerm: '',
+        selectedCountry: '',
+        minPrice: '',
+        maxPrice: '',
+        selectedCurrency: ''
+      });
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch();
+    }
   };
 
   return (
@@ -105,9 +124,27 @@ function Controls({ onScrape, onDownload, isScraping, lastScrapeTime, gamesCount
             type="text"
             placeholder="Nombre del juego..."
             value={searchTerm}
-            onChange={handleSearchChange}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="filter-input"
           />
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="currency">Moneda:</label>
+          <select
+            id="currency"
+            value={selectedCurrency}
+            onChange={(e) => setSelectedCurrency(e.target.value)}
+            className="filter-input"
+          >
+            <option value="">Todas las monedas</option>
+            {availableCurrencies.map(currency => (
+              <option key={currency.value} value={currency.value}>
+                {currency.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="filter-group">
@@ -117,7 +154,8 @@ function Controls({ onScrape, onDownload, isScraping, lastScrapeTime, gamesCount
             type="number"
             placeholder="Min"
             value={minPrice}
-            onChange={handleMinPriceChange}
+            onChange={(e) => setMinPrice(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="filter-input price-input"
             min="0"
           />
@@ -130,22 +168,33 @@ function Controls({ onScrape, onDownload, isScraping, lastScrapeTime, gamesCount
             type="number"
             placeholder="Max"
             value={maxPrice}
-            onChange={handleMaxPriceChange}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="filter-input price-input"
             min="0"
           />
         </div>
 
-        <button
-          className="btn btn-clear"
-          onClick={clearFilters}
-        >
-          Limpiar Filtros
-        </button>
+        <div className="filter-actions">
+          <button
+            className="btn btn-primary"
+            onClick={handleSearch}
+            disabled={isScraping}
+          >
+            Buscar
+          </button>
+          <button
+            className="btn btn-clear"
+            onClick={clearFilters}
+          >
+            Limpiar
+          </button>
+        </div>
       </div>
 
       <div className="filters-summary">
         {searchTerm && <span className="filter-tag">Búsqueda: "{searchTerm}"</span>}
+        {selectedCurrency && <span className="filter-tag">Moneda: {selectedCurrency}</span>}
         {minPrice && <span className="filter-tag">Min: {minPrice}</span>}
         {maxPrice && <span className="filter-tag">Max: {maxPrice}</span>}
       </div>
